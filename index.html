@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Costos de Impresión 3D</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2a6496;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .btn {
+            background-color: #2a6496;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #1e4b75;
+        }
+        .result {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        .result h2 {
+            color: #2a6496;
+            margin-top: 0;
+            text-align: center;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .result-total {
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 1.2em;
+        }
+        .tab {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tablink {
+            background-color: #f1f1f1;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px 16px;
+            transition: 0.3s;
+            font-size: 16px;
+            flex: 1;
+        }
+        .tablink:hover {
+            background-color: #ddd;
+        }
+        .tablink.active {
+            background-color: #2a6496;
+            color: white;
+        }
+        .tabcontent {
+            display: none;
+            padding: 20px 0;
+        }
+        .show {
+            display: block;
+        }
+        .info-icon {
+            display: inline-block;
+            margin-left: 5px;
+            width: 16px;
+            height: 16px;
+            background-color: #2a6496;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 16px;
+            font-size: 12px;
+            cursor: help;
+            position: relative;
+        }
+        .tooltip {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            font-weight: normal;
+        }
+        .info-icon:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        .currency-section {
+            background-color: #eaf2f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #b3d1ff;
+        }
+        .currency-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2a6496;
+        }
+        .material-prices {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        .material-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2a6496;
+        }
+        .material-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .material-label {
+            flex: 1;
+        }
+        .material-input {
+            flex: 1;
+            margin-left: 10px;
+        }
+        .collapsible {
+            background-color: #eaf2f8;
+            color: #2a6496;
+            cursor: pointer;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 16px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .active-collapse, .collapsible:hover {
+            background-color: #d4e5f7;
+        }
+        .collapsible:after {
+            content: '\002B';
+            color: #2a6496;
+            font-weight: bold;
+            float: right;
+            margin-left: 5px;
+        }
+        .active-collapse:after {
+            content: "\2212";
+        }
+        .collapse-content {
+            padding: 0 18px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+            background-color: #f9f9f9;
+            border-radius: 0 0 5px 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculadora de Costos de Impresión 3D</h1>
+        
+        <div class="currency-section">
+            <div class="currency-title">Seleccionar Moneda:</div>
+            <select id="currency" onchange="updateCurrency()">
+                <option value="EUR">Euro (€)</option>
+                <option value="USD">Dólar estadounidense ($)</option>
+                <option value="ARS">Peso argentino ($)</option>
+                <option value="MXN">Peso mexicano ($)</option>
+                <option value="CLP">Peso chileno ($)</option>
+                <option value="COP">Peso colombiano ($)</option>
+                <option value="PEN">Sol peruano (S/)</option>
+                <option value="BRL">Real brasileño (R$)</option>
+                <option value="GBP">Libra esterlina (£)</option>
+            </select>
+        </div>
+        
+        <button class="collapsible">Configurar Precios de Materiales</button>
+        <div class="collapse-content">
+            <div class="material-prices">
+                <div class="material-title">Precios de Materiales por Kg:</div>
+                <div class="material-row">
+                    <div class="material-label">PLA:</div>
+                    <div class="material-input">
+                        <input type="number" id="pla-price" value="20" min="0" step="0.01" onchange="updateMaterialPriceDatabase()">
+                    </div>
+                </div>
+                <div class="material-row">
+                    <div class="material-label">ABS:</div>
+                    <div class="material-input">
+                        <input type="number" id="abs-price" value="22" min="0" step="0.01" onchange="updateMaterialPriceDatabase()">
+                    </div>
+                </div>
+                <div class="material-row">
+                    <div class="material-label">PETG:</div>
+                    <div class="material-input">
+                        <input type="number" id="petg-price" value="25" min="0" step="0.01" onchange="updateMaterialPriceDatabase()">
+                    </div>
+                </div>
+                <div class="material-row">
+                    <div class="material-label">TPU Flexible:</div>
+                    <div class="material-input">
+                        <input type="number" id="tpu-price" value="35" min="0" step="0.01" onchange="updateMaterialPriceDatabase()">
+                    </div>
+                </div>
+                <div class="material-row">
+                    <div class="material-label">Resina:</div>
+                    <div class="material-input">
+                        <input type="number" id="resin-price" value="40" min="0" step="0.01" onchange="updateMaterialPriceDatabase()">
+                    </div>
+                </div>
+                <div class="material-row">
+                    <div class="material-label">Nylon:</div>
+                    <div class="material-input">
+                        <input type="number" id="nylon-price" value="45" min="0" step="0.01" onchange="updateMaterialPriceDatabase()">
+                    </div>
+                </div>
+                <div class="material-row">
+                    <div class="material-label">Carbon Fiber:</div>
+                    <div class="material-input">
+                        <input type="number" id="carbon-price" value="60" min="0" step="0.01" onchange="updateMaterialPriceDatabase()">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab">
+            <button class="tablink active" onclick="openTab(event, 'basic')">Cálculo Básico</button>
+            <button class="tablink" onclick="openTab(event, 'advanced')">Cálculo Avanzado</button>
+        </div>
+        
+        <div id="basic" class="tabcontent show">
+            <div class="form-group">
+                <label for="material">Tipo de Material:</label>
+                <select id="material" onchange="updateMaterialPrice()">
+                    <option value="pla">PLA</option>
+                    <option value="abs">ABS</option>
+                    <option value="petg">PETG</option>
+                    <option value="tpu">TPU Flexible</option>
+                    <option value="resin">Resina</option>
+                    <option value="nylon">Nylon</option>
+                    <option value="carbon">Carbon Fiber</option>
+                    <option value="other">Otro</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="customPriceDiv" style="display: none;">
+                <label for="customPrice">Precio del Material (por kg):</label>
+                <input type="number" id="customPrice" value="0" step="0.01">
+            </div>
+            
+            <div class="form-group">
+                <label for="weight">Peso del Filamento (gramos):</label>
+                <input type="number" id="weight" min="0" value="100">
+            </div>
+            
+            <div class="form-group">
+                <label for="time">Tiempo de Impresión (horas):</label>
+                <input type="number" id="time" min="0" value="3" step="0.1">
+            </div>
+            
+            <button class="btn" onclick="calculateBasic()">Calcular Costo</button>
+            
+            <div class="result" id="resultBasic" style="display: none;">
+                <h2>Resultado del Cálculo</h2>
+                <div class="result-item">
+                    <span>Costo del Material:</span>
+                    <span id="materialCost">0.00</span>
+                </div>
+                <div class="result-item">
+                    <span>Costo de Electricidad:</span>
+                    <span id="electricityCost">0.00</span>
+                </div>
+                <div class="result-item">
+                    <span>Costo por Tiempo (depreciación):</span>
+                    <span id="timeCost">0.00</span>
+                </div>
+                <div class="result-total">
+                    <span>Costo Total:</span>
+                    <span id="totalCost">0.00</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="advanced" class="tabcontent">
+            <div class="form-group">
+                <label for="materialAdvanced">Tipo de Material:</label>
+                <select id="materialAdvanced" onchange="updateMaterialPriceAdvanced()">
+                    <option value="pla">PLA</option>
+                    <option value="abs">ABS</option>
+                    <option value="petg">PETG</option>
+                    <option value="tpu">TPU Flexible</option>
+                    <option value="resin">Resina</option>
+                    <option value="nylon">Nylon</option>
+                    <option value="carbon">Carbon Fiber</option>
+                    <option value="other">Otro</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="customPriceDivAdvanced" style="display: none;">
+                <label for="customPriceAdvanced">Precio del Material (por kg):</label>
+                <input type="number" id="customPriceAdvanced" value="0" step="0.01">
+            </div>
+            
+            <div class="form-group">
+                <label for="weightAdvanced">Peso del Filamento (gramos):</label>
+                <input type="number" id="weightAdvanced" min="0" value="100">
+            </div>
+            
+            <div class="form-group">
+                <label for="timeAdvanced">Tiempo de Impresión (horas):</label>
+                <input type="number" id="timeAdvanced" min="0" value="3" step="0.1">
+            </div>
+            
+            <div class="form-group">
+                <label for="printerPower">
+                    Potencia de la Impresora (watts):
+                    <span class="info-icon">?
+                        <span class="tooltip">La potencia típica varía entre 50W y 250W dependiendo del modelo</span>
+                    </span>
+                </label>
+                <input type="number" id="printerPower" min="0" value="120">
+            </div>
+            
+            <div class="form-group">
+                <label for="electricityPrice">
+                    Precio de la Electricidad (por kWh):
+                    <span class="info-icon">?
+                        <span class="tooltip">Consulta tu factura de electricidad para este valor</span>
+                    </span>
+                </label>
+                <input type="number" id="electricityPrice" min="0" value="0.12" step="0.01">
+            </div>
+            
+            <div class="form-group">
+                <label for="printerCost">
+                    Costo de la Impresora:
+                    <span class="info-icon">?
+                        <span class="tooltip">El precio de compra de la impresora</span>
+                    </span>
+                </label>
+                <input type="number" id="printerCost" min="0" value="300">
+            </div>
+            
+            <div class="form-group">
+                <label for="printerLifespan">
+                    Vida Útil Estimada (horas):
+                    <span class="info-icon">?
+                        <span class="tooltip">Horas totales que esperas que funcione la impresora</span>
+                    </span>
+                </label>
+                <input type="number" id="printerLifespan" min="0" value="2000">
+            </div>
+            
+            <div class="form-group">
+                <label for="failureRate">
+                    Tasa de Fallos (%):
+                    <span class="info-icon">?
+                        <span class="tooltip">Porcentaje estimado de impresiones fallidas</span>
+                    </span>
+                </label>
+                <input type="number" id="failureRate" min="0" max="100" value="5">
+            </div>
+            
+            <div class="form-group">
+                <label for="profit">
+                    Margen de Beneficio (%):
+                    <span class="info-icon">?
+                        <span class="tooltip">Porcentaje de ganancia que deseas agregar</span>
+                    </span>
+                </label>
+                <input type="number" id="profit" min="0" value="20">
+            </div>
+            
+            <button class="btn" onclick="calculateAdvanced()">Calcular Costo Detallado</button>
+            
+            <div class="result" id="resultAdvanced" style="display: none;">
+                <h2>Resultado del Cálculo Detallado</h2>
+                <div class="result-item">
+                    <span>Costo del Material:</span>
+                    <span id="materialCostAdv">0.00</span>
+                </div>
+                <div class="result-item">
+                    <span>Costo de Electricidad:</span>
+                    <span id="electricityCostAdv">0.00</span>
+                </div>
+                <div class="result-item">
+                    <span>Costo de Depreciación:</span>
+                    <span id="depreciationCostAdv">0.00</span>
+                </div>
+                <div class="result-item">
+                    <span>Costo por Fallos:</span>
+                    <span id="failureCostAdv">0.00</span>
+                </div>
+                <div class="result-item">
+                    <span>Subtotal:</span>
+                    <span id="subtotalCostAdv">0.00</span>
+                </div>
+                <div class="result-item">
+                    <span>Beneficio:</span>
+                    <span id="profitAmountAdv">0.00</span>
+                </div>
+                <div class="result-total">
+                    <span>Precio de Venta Recomendado:</span>
+                    <span id="totalCostAdv">0.00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Base de datos de precios de materiales (valores iniciales)
+        let materialPrices = {
+            pla: 20,    // 20€/kg
+            abs: 22,    // 22€/kg
+            petg: 25,   // 25€/kg
+            tpu: 35,    // 35€/kg
+            resin: 40,  // 40€/kg
+            nylon: 45,  // 45€/kg
+            carbon: 60  // 60€/kg
+        };
+        
+        // Inicializar los campos de precios con los valores de la base de datos
+        function initializePriceFields() {
+            document.getElementById("pla-price").value = materialPrices.pla;
+            document.getElementById("abs-price").value = materialPrices.abs;
+            document.getElementById("petg-price").value = materialPrices.petg;
+            document.getElementById("tpu-price").value = materialPrices.tpu;
+            document.getElementById("resin-price").value = materialPrices.resin;
+            document.getElementById("nylon-price").value = materialPrices.nylon;
+            document.getElementById("carbon-price").value = materialPrices.carbon;
+        }
+        
+        // Actualizar la base de datos de precios con los valores de los campos
+        function updateMaterialPriceDatabase() {
+            materialPrices.pla = parseFloat(document.getElementById("pla-price").value);
+            materialPrices.abs = parseFloat(document.getElementById("abs-price").value);
+            materialPrices.petg = parseFloat(document.getElementById("petg-price").value);
+            materialPrices.tpu = parseFloat(document.getElementById("tpu-price").value);
+            materialPrices.resin = parseFloat(document.getElementById("resin-price").value);
+            materialPrices.nylon = parseFloat(document.getElementById("nylon-price").value);
+            materialPrices.carbon = parseFloat(document.getElementById("carbon-price").value);
+            
+            // Si hay resultados visibles, recalcular
+            if (document.getElementById("resultBasic").style.display === "block") {
+                calculateBasic();
+            }
+            
+            if (document.getElementById("resultAdvanced").style.display === "block") {
+                calculateAdvanced();
+            }
+        }
+        
+        // Símbolos de las monedas
+        const currencySymbols = {
+            EUR: "€",
+            USD: "$",
+            ARS: "$",
+            MXN: "$",
+            CLP: "$",
+            COP: "$",
+            PEN: "S/",
+            BRL: "R$",
+            GBP: "£"
+        };
+        
+        // Variable global para almacenar la moneda actual
+        let currentCurrency = "EUR";
+        let currentSymbol = "€";
+        
+        // Actualizar la moneda seleccionada
+        function updateCurrency() {
+            currentCurrency = document.getElementById("currency").value;
+            currentSymbol = currencySymbols[currentCurrency];
+            
+            // Si hay resultados visibles, recalcular
+            if (document.getElementById("resultBasic").style.display === "block") {
+                calculateBasic();
+            }
+            
+            if (document.getElementById("resultAdvanced").style.display === "block") {
+                calculateAdvanced();
+            }
+        }
+        
+        // Abrir la pestaña seleccionada
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablink");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+        
+        // Actualizar el precio del material en cálculo básico
+        function updateMaterialPrice() {
+            const material = document.getElementById("material").value;
+            const customPriceDiv = document.getElementById("customPriceDiv");
+            
+            if (material === "other") {
+                customPriceDiv.style.display = "block";
+            } else {
+                customPriceDiv.style.display = "none";
+            }
+        }
+        
+        // Actualizar el precio del material en cálculo avanzado
+        function updateMaterialPriceAdvanced() {
+            const material = document.getElementById("materialAdvanced").value;
+            const customPriceDiv = document.getElementById("customPriceDivAdvanced");
+            
+            if (material === "other") {
+                customPriceDiv.style.display = "block";
+            } else {
+                customPriceDiv.style.display = "none";
+            }
+        }
+        
+        // Función para formatear números con el símbolo de moneda actual
+        function formatCurrency(value) {
+            return value.toFixed(2) + currentSymbol;
+        }
+        
+        // Calcular el costo básico
+        function calculateBasic() {
+            const material = document.getElementById("material").value;
+            const weight = parseFloat(document.getElementById("weight").value);
+            const time = parseFloat(document.getElementById("time").value);
+            
+            let materialPricePerKg;
+            if (material === "other") {
+                materialPricePerKg = parseFloat(document.getElementById("customPrice").value);
+            } else {
+                materialPricePerKg = materialPrices[material];
+            }
+            
+            // Cálculos
+            const materialCost = (weight / 1000) * materialPricePerKg;
+            const electricityCost = time * 0.12 * 0.15; // Estimación básica: 150W, 0.12€/kWh
+            const timeCost = time * 0.5; // Estimación básica: 0.5€/hora por depreciación
+            
+            const totalCost = materialCost + electricityCost + timeCost;
+            
+            // Mostrar resultados con el símbolo de moneda actual
+            document.getElementById("materialCost").textContent = formatCurrency(materialCost);
+            document.getElementById("electricityCost").textContent = formatCurrency(electricityCost);
+            document.getElementById("timeCost").textContent = formatCurrency(timeCost);
+            document.getElementById("totalCost").textContent = formatCurrency(totalCost);
+            
+            document.getElementById("resultBasic").style.display = "block";
+        }
+        
+        // Calcular el costo avanzado
+        function calculateAdvanced() {
+            const material = document.getElementById("materialAdvanced").value;
+            const weight = parseFloat(document.getElementById("weightAdvanced").value);
+            const time = parseFloat(document.getElementById("timeAdvanced").value);
+            const printerPower = parseFloat(document.getElementById("printerPower").value);
+            const electricityPrice = parseFloat(document.getElementById("electricityPrice").value);
+            const printerCost = parseFloat(document.getElementById("printerCost").value);
+            const printerLifespan = parseFloat(document.getElementById("printerLifespan").value);
+            const failureRate = parseFloat(document.getElementById("failureRate").value);
+            const profit = parseFloat(document.getElementById("profit").value);
+            
+            let materialPricePerKg;
+            if (material === "other") {
+                materialPricePerKg = parseFloat(document.getElementById("customPriceAdvanced").value);
+            } else {
+                materialPricePerKg = materialPrices[material];
+            }
+            
+            // Cálculos detallados
+            const materialCost = (weight / 1000) * materialPricePerKg;
+            const electricityCost = time * (printerPower / 1000) * electricityPrice;
+            const depreciationCost = (printerCost / printerLifespan) * time;
+            
+            const subtotal = materialCost + electricityCost + depreciationCost;
+            const failureCost = subtotal * (failureRate / 100);
+            const costWithFailure = subtotal + failureCost;
+            const profitAmount = costWithFailure * (profit / 100);
+            const total = costWithFailure + profitAmount;
+            
+            // Mostrar resultados con el símbolo de moneda actual
+            document.getElementById("materialCostAdv").textContent = formatCurrency(materialCost);
+            document.getElementById("electricityCostAdv").textContent = formatCurrency(electricityCost);
+            document.getElementById("depreciationCostAdv").textContent = formatCurrency(depreciationCost);
+            document.getElementById("failureCostAdv").textContent = formatCurrency(failureCost);
+            document.getElementById("subtotalCostAdv").textContent = formatCurrency(costWithFailure);
+            document.getElementById("profitAmountAdv").textContent = formatCurrency(profitAmount);
+            document.getElementById("totalCostAdv").textContent = formatCurrency(total);
+            
+            document.getElementById("resultAdvanced").style.display = "block";
+        }
+        
+        // Funcionalidad para los elementos colapsables
+        function setupCollapsibles() {
+            var coll = document.getElementsByClassName("collapsible");
+            for (var i = 0; i < coll.length; i++) {
+                coll[i].addEventListener("click", function() {
+                    this.classList.toggle("active-collapse");
+                    var content = this.nextElementSibling;
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                    }
+                });
+            }
+        }
+        
+        // Inicializar
+        window.onload = function() {
+            initializePriceFields();
+            updateMaterialPrice();
+            updateMaterialPriceAdvanced();
+            setupCollapsibles();
+        };
+    </script>
+</body>
+</html>
